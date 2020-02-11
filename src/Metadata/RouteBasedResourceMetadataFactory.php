@@ -47,6 +47,10 @@ class RouteBasedResourceMetadataFactory implements MetadataFactoryInterface
      *          // generating the self relational link for the collection
      *          // resource. Defaults to an empty array.
      *          'route_params' => [],
+     *
+     *          // Max depth to render
+     *          // Defaults to 10.
+     *          'max_depth' => 10,
      *     ]
      *     </code>
      * @return AbstractMetadata
@@ -73,7 +77,8 @@ class RouteBasedResourceMetadataFactory implements MetadataFactoryInterface
             $metadata['extractor'],
             $metadata['resource_identifier'] ?? 'id',
             $metadata['route_identifier_placeholder'] ?? 'id',
-            $metadata['route_params'] ?? []
+            $metadata['route_params'] ?? [],
+            $metadata['max_depth'] ?? 10
         );
     }
 }

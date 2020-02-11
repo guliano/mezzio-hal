@@ -10,7 +10,7 @@ namespace Mezzio\Hal\Metadata;
 
 use Mezzio\Hal\LinkCollection;
 
-abstract class AbstractMetadata
+abstract class AbstractMetadata implements MetadataInterface
 {
     use LinkCollection;
 
@@ -22,5 +22,10 @@ abstract class AbstractMetadata
     public function getClass() : string
     {
         return $this->class;
+    }
+
+    public function hasReachedMaxDepth(int $currentDepth): bool
+    {
+        return false;
     }
 }

@@ -21,20 +21,16 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class ResourceWithNestedInstancesTest extends TestCase
+class ResourceWithSelfReferringInstanceTest extends TestCase
 {
     use Assertions;
 
-    public function testNestedObjectInMetadataMapIsEmbeddedAsResource()
+    public function testSelfReferringIsEmbeddedAsResource()
     {
-        $child = new TestAsset\Child;
-        $child->id = 9876;
-        $child->message = 'ack';
-
         $parent = new TestAsset\FooBar;
         $parent->id = 1234;
         $parent->foo = 'FOO';
-        $parent->bar = $child;
+        $parent->bar = $parent;
 
         $request = $this->prophesize(ServerRequestInterface::class);
 
@@ -63,8 +59,7 @@ class ResourceWithNestedInstancesTest extends TestCase
 
         $childResource = $resource->getElement('bar');
         $this->assertInstanceOf(HalResource::class, $childResource);
-        $this->assertEquals($child->id, $childResource->getElement('id'));
-        $this->assertEquals($child->message, $childResource->getElement('message'));
+        $this->assertCount(0, $childResource->getElements());
     }
 
     public function createMetadataMap()
@@ -78,24 +73,11 @@ class ResourceWithNestedInstancesTest extends TestCase
             'id',
             'id',
             [],
-            10
+            0
         );
 
         $metadataMap->has(TestAsset\FooBar::class)->willReturn(true);
         $metadataMap->get(TestAsset\FooBar::class)->willReturn($fooBarMetadata);
-
-        $childMetadata = new RouteBasedResourceMetadata(
-            TestAsset\Child::class,
-            'child',
-            self::getObjectPropertyHydratorClass(),
-            'id',
-            'id',
-            [],
-            10
-        );
-
-        $metadataMap->has(TestAsset\Child::class)->willReturn(true);
-        $metadataMap->get(TestAsset\Child::class)->willReturn($childMetadata);
 
         return $metadataMap;
     }
@@ -112,15 +94,6 @@ class ResourceWithNestedInstancesTest extends TestCase
                 [ 'id' => 1234 ]
             )
             ->willReturn(new Link('self', '/api/foo-bar/1234'));
-
-        $linkGenerator
-            ->fromRoute(
-                'self',
-                $request->reveal(),
-                'child',
-                [ 'id' => 9876 ]
-            )
-            ->willReturn(new Link('self', '/api/child/9876'));
 
         return $linkGenerator;
     }

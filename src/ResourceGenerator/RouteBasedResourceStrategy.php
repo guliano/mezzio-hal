@@ -21,7 +21,8 @@ class RouteBasedResourceStrategy implements StrategyInterface
         $instance,
         Metadata\AbstractMetadata $metadata,
         ResourceGenerator $resourceGenerator,
-        ServerRequestInterface $request
+        ServerRequestInterface $request,
+        int $depth = 0
     ) : HalResource {
         if (! $metadata instanceof Metadata\RouteBasedResourceMetadata) {
             throw Exception\UnexpectedMetadataTypeException::forMetadata(
@@ -35,7 +36,8 @@ class RouteBasedResourceStrategy implements StrategyInterface
             $instance,
             $metadata,
             $resourceGenerator,
-            $request
+            $request,
+            $depth
         );
 
         $routeParams        = $metadata->getRouteParams();
@@ -44,6 +46,10 @@ class RouteBasedResourceStrategy implements StrategyInterface
 
         if (isset($data[$resourceIdentifier])) {
             $routeParams[$routeIdentifier] = $data[$resourceIdentifier];
+        }
+
+        if ($metadata->hasReachedMaxDepth($depth)) {
+            $data = [];
         }
 
         return new HalResource($data, [

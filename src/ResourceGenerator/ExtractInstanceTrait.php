@@ -28,7 +28,8 @@ trait ExtractInstanceTrait
         $instance,
         AbstractMetadata $metadata,
         ResourceGenerator $resourceGenerator,
-        ServerRequestInterface $request
+        ServerRequestInterface $request,
+        int $depth = 0
     ) : array {
         $hydrators = $resourceGenerator->getHydrators();
         $extractor = $hydrators->get($metadata->getExtractor());
@@ -37,6 +38,10 @@ trait ExtractInstanceTrait
         }
 
         $array = $extractor->extract($instance);
+
+        if ($metadata->hasReachedMaxDepth($depth)) {
+            return $array;
+        }
 
         // Extract nested resources if present in metadata map
         $metadataMap = $resourceGenerator->getMetadataMap();
@@ -50,7 +55,7 @@ trait ExtractInstanceTrait
                 continue;
             }
 
-            $childData = $resourceGenerator->fromObject($value, $request);
+            $childData = $resourceGenerator->fromObject($value, $request, $depth + 1);
 
             // Nested collections need to be merged.
             $childMetadata = $metadataMap->get($childClass);
